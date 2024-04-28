@@ -4,7 +4,7 @@
     <label class="js-terms" for="carrier_insurance">
         {l s='je souhaite bénéficier de la garantie de livraison' mod='carrier_insurance'}
         {if $amount > 0}
-            {l s='pour un montant de %s HT' sprintf=[$amount_display] mod='carrier_insurance'}
+            {l s='pour un montant de %s HT' sprintf=[$amount] mod='carrier_insurance'}
         {/if}
         .
     </label>

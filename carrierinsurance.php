@@ -266,6 +266,65 @@ class CarrierInsurance extends Module
     }
 
     /**
+     * @return array{amount_tax_excl: float, amount_tax_incl: float}|false
+     * @throws \Exception
+     * /**
+     */
+    private function calculateCartAmounts(Cart $cart)
+    {
+        if (!Validate::isLoadedObject($cart)) {
+            return false;
+        }
+
+        $cart_amount = $cart->getOrderTotal(false, CartCore::BOTH_WITHOUT_SHIPPING);
+        if (
+            (float)Configuration::get('CI_FREE_AMOUNT') > 0 &&
+            $cart_amount >= (float)Configuration::get('CI_FREE_AMOUNT')
+        ) {
+            return ['amount_tax_excl' => 0, 'amount_tax_incl' => 0];
+        }
+
+        $ranges = $this->getSavedRanges();
+        foreach ($ranges as $range) {
+            if ($cart_amount >= $range['from'] && $cart_amount < $range['to']) {
+                switch (Configuration::get('CI_TYPE')) {
+                    case 'percent_order':
+                        $amount_insurance_tax_excl = Tools::ps_round($cart_amount * $range['percent'] / 100, 2);
+                        break;
+                    case 'percent_shipping':
+                        $shipping_amount = $cart->getOrderTotal(false, CartCore::ONLY_SHIPPING);
+                        $amount_insurance_tax_excl = Tools::ps_round($shipping_amount * $range['percent'] / 100, 2);
+                        break;
+                    case 'amount':
+                        $amount_insurance_tax_excl = Tools::ps_round($cart_amount * $range['percent'] / 100, 2);
+                }
+            }
+        }
+
+        if (!isset($amount_insurance_tax_excl)) {
+            return false;
+        }
+
+        $id_tax_rules_group = (int)Configuration::get('CI_ID_TAX_RULES_GROUP');
+        if (
+            $id_tax_rules_group > 0 &&
+            ($tax_rules_group = new TaxRulesGroup($id_tax_rules_group))
+            && Validate::isLoadedObject($tax_rules_group)
+        ) {
+            $id_address = (int) $cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
+            $address = Address::initialize($id_address);
+            $tax_manager = TaxManagerFactory::getManager($address, $id_tax_rules_group);
+            $tax_calculator = $tax_manager->getTaxCalculator();
+            $amount_insurance_tax_incl = $tax_calculator->addTaxes($amount_insurance_tax_excl);
+        } else {
+            $amount_insurance_tax_incl = $amount_insurance_tax_excl;
+        }
+
+        return ['amount_tax_excl' => $amount_insurance_tax_excl, 'amount_tax_incl' => $amount_insurance_tax_incl];
+    }
+
+
+    /**
      * @throws \PrestaShopDatabaseException
      */
     public function hookActionCarrierProcess($params)
@@ -280,19 +339,21 @@ class CarrierInsurance extends Module
 
     /**
      * @throws PrestaShopDatabaseException
+     * @throws \Exception
      */
-    private function processCartCarrier($cart)
+    private function processCartCarrier(Cart $cart)
     {
+        Db::getInstance()->delete('cart_insurance', 'id_cart='.(int)$cart->id, 1);
         $have_selected_insurance = (int)Tools::getValue('carrier_insurance');
         if ($have_selected_insurance) {
-            $amount = $this->getAmountForCart($cart->id);
-            Db::getInstance()->insert('cart_insurance', [
-                'id_cart' => (int)$cart->id,
-                'amount_tax_excl' => $amount,
-                'amount_tax_incl' => $amount,
-            ], false, false, Db::REPLACE);
-        } else {
-            Db::getInstance()->delete('cart_insurance', 'id_cart='.(int)$cart->id, 1);
+            $amounts = $this->calculateCartAmounts($cart);
+            if ($amounts !== false) {
+                Db::getInstance()->insert('cart_insurance', [
+                    'id_cart' => (int)$cart->id,
+                    'amount_tax_excl' => (float)$amounts['amount_tax_excl'],
+                    'amount_tax_incl' => (float)$amounts['amount_tax_incl']
+                ], false, false, Db::REPLACE);
+            }
         }
     }
 
@@ -338,16 +399,33 @@ class CarrierInsurance extends Module
         }
     }
 
+    /**
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws \Exception
+     */
     public function hookDisplayAfterCarrier($params) {
-        $this->context->smarty->assign(array(
-            'have_insurance' => self::cartHaveInsurance($this->context->cart->id),
-            'ajax_url' => $this->context->link->getModuleLink($this->name, 'ajax',
-                ['ajax' => 1, 'process' => 'updateInsurance']),
-            'ci_id_cms' => (int)Configuration::get('CI_ID_CMS'),
-            'amount' => $this->getAmountForCart(),
-            'amount_display' => Tools::displayPrice($this->getAmountForCart())
-        ));
-        return $this->display(__FILE__, 'views/templates/hook/carrier-extra-content.tpl');
+        $insurance_amount = $this->calculateCartAmount($this->context->cart);
+        if ($insurance_amount !== false) {
+            $taxIncluded = $this->isCartViewTaxIncluded($this->context->cart);
+            $this->context->smarty->assign(array(
+                'have_insurance' => self::cartHaveInsurance($this->context->cart->id),
+                'amount_numeric' => $insurance_amount,
+                'amount' => $this->context->getCurrentLocale()->formatPrice(
+                    $insurance_amount,
+                    (new Currency($this->context->cart->id_currency))->iso_code
+                ),
+                'ajax_url' => $this->context->link->getModuleLink(
+                    $this->name,
+                    'ajax',
+                    ['ajax' => 1, 'process' => 'updateInsurance']
+                ),
+                'id_cms' => (int)Configuration::get('CI_ID_CMS'),
+
+            ));
+            return $this->display(__FILE__, 'views/templates/hook/carrier-extra-content.tpl');
+        }
+
+        return '';
     }
 
     /**
@@ -426,5 +504,18 @@ class CarrierInsurance extends Module
     private function getSavedRanges()
     {
         return json_decode(Configuration::get('CI_RANGES'), true) ?? [];
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function calculateCartAmount(Cart $cart)
+    {
+        $taxIncluded = $this->isCartViewTaxIncluded($cart);
+        $amounts = $this->calculateCartAmounts($cart);
+        if ($amounts !== false) {
+            return $taxIncluded ? $amounts['amount_tax_incl'] : $amounts['amount_tax_excl'];
+        }
+        return false;
     }
 }
