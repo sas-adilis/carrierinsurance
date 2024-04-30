@@ -15,7 +15,7 @@
                     <th class="fixed-width-lg text-center">{l s='From >=' mod='carrierinsurance'}</th>
                     <th class="fixed-width-lg text-center">{l s='< to' mod='carrierinsurance'}</th>
                     <th class="fixed-width-xs"></th>
-                    <th class="fixed-width-lg">{l s='Insurance amount' mod='carrierinsurance'}</th>
+                    <th class="fixed-width-xl">{l s='Insurance amount' mod='carrierinsurance'}</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +40,7 @@
                     <td>
                         <div class="input-group input-group-amount">
                             <input disabled type="text" name="ranges[amount][]" class="form-control js-amount js-float-only" value="" />
-                            <span class="input-group-addon">{$currency->sign}</span>
+                            <span class="input-group-addon">{$currency->sign} {l s='Tax excl.' mod='carrierinsurance'}</span>
                         </div>
                         <div class="input-group input-group-percent">
                             <input disabled type="text" name="ranges[percent][]" class="form-control js-percent js-float-only" value="" />
@@ -70,7 +70,7 @@
                         <td>
                             <div class="input-group input-group-amount">
                                 <input type="text" name="ranges[amount][]" class="form-control js-amount js-float-only" value="{$range.amount}" />
-                                <span class="input-group-addon">{$currency->sign}</span>
+                                <span class="input-group-addon">{$currency->sign} {l s='Tax excl.' mod='carrierinsurance'}</span>
                             </div>
                             <div class="input-group input-group-percent">
                                 <input type="text" name="ranges[percent][]" class="form-control js-percent js-float-only" value="{$range.percent}" />

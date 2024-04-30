@@ -14,13 +14,6 @@ if (!defined('_PS_VERSION_')) {
 
 class CarrierInsurance extends Module
 {
-    const RANGES_BASE_ORDER = 'order';
-    const RANGES_BASE_SHIPPING = 'shipping';
-    const RANGE_BEHAVIOR_HIGHEST = 'highest';
-    const RANGE_BEHAVIOR_DISABLE = 'disable';
-    const CALCULATION_METHOD_AMOUNT = 'amount';
-    const CALCULATION_METHOD_PERCENT_ORDER = 'percent_order';
-    const CALCULATION_METHOD_PERCENT_SHIPPING = 'percent_shipping';
 
     function __construct()
     {
@@ -42,12 +35,6 @@ class CarrierInsurance extends Module
             require_once($this->getLocalPath() . 'sql/install.php');
         }
 
-        Configuration::updateValue('CI_CALCULATION_METHOD', 'percent_order');
-        Configuration::updateValue('CI_ID_TAX_RULES_GROUP', 0);
-        Configuration::updateValue('CI_ID_CMS', 0);
-        Configuration::updateValue('CI_RANGE_BEHAVIOR', self::RANGE_BEHAVIOR_DISABLE);
-        Configuration::updateValue('CI_RANGES_BASE', self::RANGES_BASE_ORDER);
-
         return
             parent::install() &&
             $this->registerHook('displayAfterCarrier') &&
@@ -62,7 +49,7 @@ class CarrierInsurance extends Module
     public function getContent(): string
     {
         if (Tools::isSubmit('submit'.$this->name.'Module')) {
-            $amount_key = Tools::getValue('CI_CALCULATION_METHOD') == 'amount' ? 'amount' : 'percent';
+            $amount_key = Tools::getValue('CI_TYPE') == 'amount' ? 'amount' : 'percent';
             $posted_ranges = $this->getPostedRanges();
             $lastTo = 0;
             foreach ($posted_ranges as $key => $range) {
@@ -96,12 +83,11 @@ class CarrierInsurance extends Module
 
             $this->context->controller->errors = array_unique($this->context->controller->errors);
             if (!count($this->context->controller->errors)) {
-                Configuration::updateValue('CI_CALCULATION_METHOD' , Tools::getValue('CI_CALCULATION_METHOD'));
-                Configuration::updateValue('CI_RANGES_BASE' , Tools::getValue('CI_RANGES_BASE'));
-                Configuration::updateValue('CI_RANGE_BEHAVIOR' , Tools::getValue('CI_RANGE_BEHAVIOR'));
+                Configuration::updateValue('CI_TYPE' , Tools::getValue('CI_TYPE'));
                 Configuration::updateValue('CI_RANGES' , json_encode($posted_ranges));
                 Configuration::updateValue('CI_ID_TAX_RULES_GROUP' , (int)Tools::getValue('CI_ID_TAX_RULES_GROUP'));
                 Configuration::updateValue('CI_ID_CMS' , (int)Tools::getValue('CI_ID_CMS'));
+                Configuration::updateValue('CI_FREE_AMOUNT' , (float)Tools::getValue('CI_FREE_AMOUNT'));
 
                 $redirect_after = $this->context->link->getAdminLink('AdminModules', true);
                 $redirect_after .= '&conf=4&configure='.$this->name.'&module_name='.$this->name;
@@ -131,11 +117,10 @@ class CarrierInsurance extends Module
             'id_language' => $this->context->language->id,
             'currency' => new Currency((int)Configuration::get('PS_CURRENCY_DEFAULT')),
             'fields_value' => array(
-                'CI_CALCULATION_METHOD' => Tools::getValue('CI_CALCULATION_METHOD', Configuration::get('CI_CALCULATION_METHOD')),
+                'CI_TYPE' => Tools::getValue('CI_TYPE', Configuration::get('CI_TYPE')),
+                'CI_FREE_AMOUNT' => (float)Tools::getValue('CI_FREE_AMOUNT', Configuration::get('CI_FREE_AMOUNT')),
                 'CI_ID_CMS' => (int)Tools::getValue('CI_ID_CMS', Configuration::get('CI_ID_CMS')),
                 'CI_ID_TAX_RULES_GROUP' => (int)Tools::getValue('CI_ID_TAX_RULES_GROUP', Configuration::get('CI_ID_TAX_RULES_GROUP')),
-                'CI_RANGES_BASE' => Tools::getValue('CI_RANGES_BASE', Configuration::get('CI_RANGES_BASE')),
-                'CI_RANGE_BEHAVIOR' => Tools::getValue('CI_RANGE_BEHAVIOR', Configuration::get('CI_RANGE_BEHAVIOR')),
             )
         );
 
@@ -150,24 +135,27 @@ class CarrierInsurance extends Module
                     ],
                     'input' => [
                         [
-                            'type' => 'radio',
-                            'label' => $this->l('Ranges based on'),
-                            'name' => 'CI_RANGES_BASE',
-                            'required' => false,
-                            'class' => 't',
-                            'br' => true,
-                            'values' => [
-                                [
-                                    'id' => 'CI_RANGES_BASE_'.self::RANGES_BASE_ORDER,
-                                    'value' => self::RANGES_BASE_ORDER,
-                                    'label' => $this->l('On the amount of the order, excluding tax and shipping'),
+                            'type' => 'select',
+                            'name' => 'CI_TYPE',
+                            'id' => 'CI_TYPE',
+                            'label' => $this->l('Insurance calculation method'),
+                            'required' => true,
+                            'options' => [
+                                'query' => [
+                                    ['id' => 'amount', 'name' => $this->l('Fixed amount')],
+                                    ['id' => 'percent_order', 'name' => $this->l('Percentage of the order')],
+                                    ['id' => 'percent_shipping', 'name' => $this->l('Percentage of the shipping amount')]
                                 ],
-                                [
-                                    'id' => 'CI_RANGES_BASE_'.self::RANGES_BASE_SHIPPING,
-                                    'value' => self::RANGES_BASE_SHIPPING,
-                                    'label' => $this->l('On shipping costs tax excluded'),
-                                ],
-                            ],
+                                'id' => 'id',
+                                'name' => 'name',
+                            ]
+                        ],
+                        [
+                            'type' => 'ranges',
+                            'name' => 'CI_RANGES',
+                            'class' => 'fixed-width-md',
+                            'id' => 'CI_RANGES',
+                            'ranges' => $ranges
                         ],
                         [
                             'type' => 'select',
@@ -183,48 +171,15 @@ class CarrierInsurance extends Module
                             ]
                         ],
                         [
-                            'type' => 'select',
-                            'name' => 'CI_CALCULATION_METHOD',
-                            'id' => 'CI_CALCULATION_METHOD',
-                            'label' => $this->l('How the amount of insurance is calculated'),
-                            'required' => true,
-                            'options' => [
-                                'query' => [
-                                    ['id' => self::CALCULATION_METHOD_AMOUNT, 'name' => $this->l('Fixed amount')],
-                                    ['id' => self::CALCULATION_METHOD_PERCENT_ORDER, 'name' => $this->l('Percentage of the order')],
-                                    ['id' => self::CALCULATION_METHOD_PERCENT_SHIPPING, 'name' => $this->l('Percentage of the shipping amount')]
-                                ],
-                                'id' => 'id',
-                                'name' => 'name',
-                            ]
-                        ],
-
-                        [
-                            'type' => 'select',
-                            'label' => $this->l('Out-of-range behavior'),
-                            'name' => 'CI_RANGE_BEHAVIOR',
-                            'options' => [
-                                'query' => [
-                                    [
-                                        'id' => self::RANGE_BEHAVIOR_HIGHEST,
-                                        'name' => $this->l('Apply the cost of the highest defined range'),
-                                    ],
-                                    [
-                                        'id' => self::RANGE_BEHAVIOR_DISABLE,
-                                        'name' => $this->l('Disable Insurance'),
-                                    ],
-                                ],
-                                'id' => 'id',
-                                'name' => 'name',
-                            ],
-                            'hint' => $this->l('Out-of-range behavior occurs when no defined range matches the customer\'s cart.'),
-                        ],
-                        [
-                            'type' => 'ranges',
-                            'name' => 'CI_RANGES',
+                            'type' => 'text',
+                            'name' => 'CI_FREE_AMOUNT',
                             'class' => 'fixed-width-md',
-                            'id' => 'CI_RANGES',
-                            'ranges' => $ranges
+                            'id' => 'CI_FREE_AMOUNT',
+                            'label' => $this->l('Free insurance from'),
+                            'desc' => $this->l('Enter the amount of the order, excluding shipping costs, from which insurance is to be offered. Enter 0 to deactivate the feature.'),
+                            'required' => true,
+                            'suffix' => \Context::getContext()->currency->getSign('right'),
+                            'maxlength' => 11
                         ],
                         [
                             'type' => 'select',
@@ -252,7 +207,7 @@ class CarrierInsurance extends Module
     {
         $ranges = Tools::getValue('ranges');
         $posted_ranges = [];
-        $amount_key = Tools::getValue('CI_CALCULATION_METHOD') == 'amount' ? 'amount' : 'percent';
+        $amount_key = Tools::getValue('CI_TYPE') == 'amount' ? 'amount' : 'percent';
         foreach ($ranges['from'] as $key => $from) {
             $posted_ranges[] = [
                 'from' => (float)$from,
@@ -321,25 +276,19 @@ class CarrierInsurance extends Module
             return false;
         }
 
-        if (Configuration::get('CI_RANGES_BASE')) {
-            $base_range_amount = (float)$cart->getOrderTotal(false, CartCore::BOTH_WITHOUT_SHIPPING);
-        } else {
-            $base_range_amount = (float)$cart->getOrderTotal(false, CartCore::ONLY_SHIPPING);
+        $cart_amount = $cart->getOrderTotal(false, CartCore::BOTH_WITHOUT_SHIPPING);
+        if (
+            (float)Configuration::get('CI_FREE_AMOUNT') > 0 &&
+            $cart_amount >= (float)Configuration::get('CI_FREE_AMOUNT')
+        ) {
+            return ['amount_tax_excl' => 0, 'amount_tax_incl' => 0];
         }
+
         $ranges = $this->getSavedRanges();
         foreach ($ranges as $range) {
-            if (
-                (
-                    $base_range_amount >= $range['from'] &&
-                    $base_range_amount < $range['to']
-                ) || (
-                    Configuration::get('CI_RANGE_BEHAVIOR') == self::RANGE_BEHAVIOR_HIGHEST &&
-                    $range === end($ranges)
-                )
-            ) {
-                switch (Configuration::get('CI_CALCULATION_METHOD')) {
+            if ($cart_amount >= $range['from'] && $cart_amount < $range['to']) {
+                switch (Configuration::get('CI_TYPE')) {
                     case 'percent_order':
-                        $cart_amount = $cart->getOrderTotal(false, CartCore::BOTH_WITHOUT_SHIPPING);
                         $amount_insurance_tax_excl = Tools::ps_round($cart_amount * $range['percent'] / 100, 2);
                         break;
                     case 'percent_shipping':
@@ -347,7 +296,7 @@ class CarrierInsurance extends Module
                         $amount_insurance_tax_excl = Tools::ps_round($shipping_amount * $range['percent'] / 100, 2);
                         break;
                     case 'amount':
-                        $amount_insurance_tax_excl = Tools::ps_round($range['amount'], 2);
+                        $amount_insurance_tax_excl = Tools::ps_round($cart_amount * $range['percent'] / 100, 2);
                 }
             }
         }
