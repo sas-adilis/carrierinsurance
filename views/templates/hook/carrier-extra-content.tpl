@@ -1,5 +1,4 @@
-<div>
-
+<div id="carrier_insurance_wrapper">
     <div class="float-xs-left">
       <span class="custom-checkbox">
         <input id="carrier_insurance" name="carrier_insurance" type="checkbox" value="1" {if $have_insurance}checked="checked"{/if} data-url="{$ajax_url}">
