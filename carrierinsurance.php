@@ -562,7 +562,7 @@ class CarrierInsurance extends Module
             );
 
             $this->context->smarty->assign([
-                'insurance_amount' => $amount_numeric > 0 ? $amount : $this->l('Free')
+                'insurance_amount' => $amount_numeric > 0 ? $amount : $this->l('Free'),
             ]);
 
             return $this->display(__FILE__, 'views/templates/hook/pdf-total-tab-invoice.tpl');
@@ -611,7 +611,8 @@ class CarrierInsurance extends Module
         }
     }
 
-    public function hookActionPDFInvoiceTaxBreakdown($params) {
+    public function hookActionPDFInvoiceTaxBreakdown($params)
+    {
         $order = $params['order'];
         if (Validate::isLoadedObject($order) && self::cartHaveInsurance($order->id_cart)) {
             $breakdowns = $params['breakdowns'];
@@ -628,9 +629,9 @@ class CarrierInsurance extends Module
                     $breakdowns['shipping_tax'][$amounts['tax_rate']] = [
                         'id_tax' => 0,
                         'rate' => $amounts['tax_rate'],
-                        'total_price_tax_excl' => (float)$amounts['amount_tax_excl'],
-                        'total_amount' => (float)$amounts['amount_tax'],
-                        'total_tax_excl' => (float)$amounts['amount_tax_excl'],
+                        'total_price_tax_excl' => (float) $amounts['amount_tax_excl'],
+                        'total_amount' => (float) $amounts['amount_tax'],
+                        'total_tax_excl' => (float) $amounts['amount_tax_excl'],
                     ];
                 }
                 $params['breakdowns'] = $breakdowns;

@@ -14,16 +14,16 @@ if (!defined('_PS_VERSION_')) {
 class HTMLTemplateInvoice extends HTMLTemplateInvoiceCore
 {
     /**
-     * @throws \PrestaShopException
+     * @throws PrestaShopException
      */
     protected function getTaxBreakdown()
     {
         $breakdowns = parent::getTaxBreakdown();
         Hook::exec('actionPDFInvoiceTaxBreakdown', [
             'order' => $this->order,
-            'breakdowns' => &$breakdowns
+            'breakdowns' => &$breakdowns,
         ]);
+
         return $breakdowns;
     }
-
 }
