@@ -7,7 +7,6 @@
  * @copyright 2024 SAS Adilis
  * @license http://www.adilis.fr
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -19,7 +18,7 @@ class CartCalculatorWithInsurance extends Calculator
 {
     public function __construct($calculator)
     {
-        $reflectedSourceObject           = new \ReflectionClass($calculator);
+        $reflectedSourceObject = new ReflectionClass($calculator);
         $reflectedSourceObjectProperties = $reflectedSourceObject->getProperties();
 
         foreach ($reflectedSourceObjectProperties as $reflectedSourceObjectProperty) {
@@ -35,12 +34,13 @@ class CartCalculatorWithInsurance extends Calculator
 
         if (Module::isEnabled('carrierinsurance')) {
             $id_cart = $this->getCart()->id;
-            $amounts = Db::getInstance()->getRow('SELECT amount_tax_incl, amount_tax_excl FROM ' . _DB_PREFIX_ . 'cart_insurance WHERE id_cart = ' . (int)$id_cart);
+            $amounts = Db::getInstance()->getRow('SELECT amount_tax_incl, amount_tax_excl FROM ' . _DB_PREFIX_ . 'cart_insurance WHERE id_cart = ' . (int) $id_cart);
             if (!$amounts) {
                 return $total;
             }
             $amount = new AmountImmutable($amounts['amount_tax_incl'], $amounts['amount_tax_excl']);
-            return  $total->add($amount);
+
+            return $total->add($amount);
         }
 
         return $total;

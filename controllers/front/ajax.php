@@ -1,17 +1,18 @@
 <?php
 
-class CarrierInsuranceAjaxModuleFrontController extends ModuleFrontController {
-
+class CarrierInsuranceAjaxModuleFrontController extends ModuleFrontController
+{
     /**
-     * @throws \PrestaShopDatabaseException
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function initContent() {
+    public function initContent()
+    {
         parent::initContent();
 
         if (Tools::getValue('action') == 'updateInsurance') {
-            $have_selected_insurance = (int)Tools::getValue('value');
-            $id_cart = (int)Tools::getValue('id_cart');
+            $have_selected_insurance = (int) Tools::getValue('value');
+            $id_cart = (int) Tools::getValue('id_cart');
             $amount_numeric = $amount = 0;
             if ($id_cart && ($cart = new Cart($id_cart)) && Validate::isLoadedObject($cart)) {
                 $amounts = $this->module->calculateCartAmounts($cart);
@@ -23,15 +24,15 @@ class CarrierInsuranceAjaxModuleFrontController extends ModuleFrontController {
                 }
                 $amount_numeric = $amounts['amount_tax_incl'];
                 if ($have_selected_insurance) {
-                    \Db::getInstance()->insert('cart_insurance', [
-                        'id_cart' => (int)$id_cart,
-                        'amount_tax_excl' => (float)$amounts['amount_tax_excl'],
-                        'amount_tax_incl' => (float)$amounts['amount_tax_incl'],
+                    Db::getInstance()->insert('cart_insurance', [
+                        'id_cart' => (int) $id_cart,
+                        'amount_tax_excl' => (float) $amounts['amount_tax_excl'],
+                        'amount_tax_incl' => (float) $amounts['amount_tax_incl'],
                     ], false, false, Db::REPLACE);
                 } else {
-                    \Db::getInstance()->delete(
+                    Db::getInstance()->delete(
                         'cart_insurance',
-                        'id_cart=' . (int)$id_cart,
+                        'id_cart=' . (int) $id_cart,
                         1
                     );
                 }
@@ -45,7 +46,7 @@ class CarrierInsuranceAjaxModuleFrontController extends ModuleFrontController {
                 'result' => 'ok',
                 'have_selected_insurance' => $have_selected_insurance,
                 'amount_numeric' => $amount_numeric,
-                'amount' => $amount_numeric > 0 ? $amount : $this->l('Free')
+                'amount' => $amount_numeric > 0 ? $amount : $this->l('Free'),
             ]);
             exit;
         }
