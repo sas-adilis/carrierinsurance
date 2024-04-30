@@ -56,7 +56,8 @@ class CarrierInsurance extends Module
             && $this->registerHook('displayHeader')
             && $this->registerHook('actionPresentCart')
             && $this->registerHook('actionPresentOrder')
-            && $this->registerHook('displayPDFInvoiceBeforeTotal');
+            && $this->registerHook('displayPDFInvoiceBeforeTotal')
+            && $this->registerHook('actionPDFInvoiceTaxBreakdown');
     }
 
     public function getContent(): string
@@ -279,7 +280,7 @@ class CarrierInsurance extends Module
         $cache_key = 'CarrierInsurance::getCartAmountsSaved_' . $id_cart;
         if (!Cache::isStored($cache_key)) {
             $amounts = Db::getInstance()->getRow('
-                SELECT amount_tax_excl, amount_tax_incl
+                SELECT amount_tax_excl, amount_tax_incl, amount_tax, tax_rate
                 FROM ' . _DB_PREFIX_ . 'cart_insurance
                 WHERE id_cart=' . (int) $id_cart
             );
@@ -371,7 +372,12 @@ class CarrierInsurance extends Module
             $amount_insurance_tax_incl = $amount_insurance_tax_excl;
         }
 
-        return ['amount_tax_excl' => $amount_insurance_tax_excl, 'amount_tax_incl' => $amount_insurance_tax_incl];
+        return [
+            'amount_tax_excl' => $amount_insurance_tax_excl,
+            'amount_tax_incl' => $amount_insurance_tax_incl,
+            'amount_tax' => $amount_insurance_tax_incl - $amount_insurance_tax_excl,
+            'tax_rate' => isset($tax_calculator) ? $tax_calculator->getTotalRate() : 0,
+        ];
     }
 
     /**
@@ -402,6 +408,8 @@ class CarrierInsurance extends Module
                     'id_cart' => (int) $cart->id,
                     'amount_tax_excl' => (float) $amounts['amount_tax_excl'],
                     'amount_tax_incl' => (float) $amounts['amount_tax_incl'],
+                    'amount_tax' => (float) $amounts['amount_tax'],
+                    'tax_rate' => (float) $amounts['tax_rate'],
                 ], false, false, Db::REPLACE);
             }
         }
@@ -547,9 +555,14 @@ class CarrierInsurance extends Module
     {
         $order = $params['order'];
         if (self::cartHaveInsurance($order->id_cart)) {
-            $amount = $this->getAmountForCart($order->id_cart);
+            $amount_numeric = $this->getCartAmountTaxExclSaved($order->id_cart);
+            $amount = $this->context->getCurrentLocale()->formatPrice(
+                $amount_numeric,
+                (new Currency($order->id_currency))->iso_code
+            );
+
             $this->context->smarty->assign([
-                'insurance_amount' => Tools::displayPrice($amount),
+                'insurance_amount' => $amount_numeric > 0 ? $amount : $this->l('Free')
             ]);
 
             return $this->display(__FILE__, 'views/templates/hook/pdf-total-tab-invoice.tpl');
@@ -595,6 +608,33 @@ class CarrierInsurance extends Module
     {
         if (self::isCheckoutPage()) {
             $this->context->controller->addJS($this->_path . 'views/js/checkout.js');
+        }
+    }
+
+    public function hookActionPDFInvoiceTaxBreakdown($params) {
+        $order = $params['order'];
+        if (Validate::isLoadedObject($order) && self::cartHaveInsurance($order->id_cart)) {
+            $breakdowns = $params['breakdowns'];
+            $amounts = $this->getCartAmountsSaved($order->id_cart);
+            if ($amounts['amount_tax'] > 0) {
+                if (isset($breakdowns['shipping_tax'][$amounts['tax_rate']])) {
+                    $breakdowns['shipping_tax'][$amounts['tax_rate']]['total_price_tax_excl'] += $amounts['amount_tax_excl'];
+                    $breakdowns['shipping_tax'][$amounts['tax_rate']]['total_amount'] += $amounts['amount_tax'];
+                    $breakdowns['shipping_tax'][$amounts['tax_rate']]['total_tax_excl'] += $amounts['amount_tax_excl'];
+                } else {
+                    if (!isset($breakdowns['shipping_tax'])) {
+                        $breakdowns['shipping_tax'] = [];
+                    }
+                    $breakdowns['shipping_tax'][$amounts['tax_rate']] = [
+                        'id_tax' => 0,
+                        'rate' => $amounts['tax_rate'],
+                        'total_price_tax_excl' => (float)$amounts['amount_tax_excl'],
+                        'total_amount' => (float)$amounts['amount_tax'],
+                        'total_tax_excl' => (float)$amounts['amount_tax_excl'],
+                    ];
+                }
+                $params['breakdowns'] = $breakdowns;
+            }
         }
     }
 }

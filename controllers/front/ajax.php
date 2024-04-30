@@ -28,6 +28,8 @@ class CarrierInsuranceAjaxModuleFrontController extends ModuleFrontController
                         'id_cart' => (int) $id_cart,
                         'amount_tax_excl' => (float) $amounts['amount_tax_excl'],
                         'amount_tax_incl' => (float) $amounts['amount_tax_incl'],
+                        'amount_tax' => (float) $amounts['amount_tax'],
+                        'tax_rate' => (float) $amounts['tax_rate']
                     ], false, false, Db::REPLACE);
                 } else {
                     Db::getInstance()->delete(
