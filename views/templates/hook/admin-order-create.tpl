@@ -1,8 +1,6 @@
 <div id="insurance_wrapper" class="form-group row" style="display: none;">
     <div class="col-md-6 col-xl-3 text-md-right col-form-label">
-        <span class="float-right">
-          Assurance
-        </span>
+        <span class="float-right">{l s='Insurance (Tax incl.)' mod='carrierinsurance'}</span>
     </div>
     <div class="col-auto" style="min-width: 100px;">
         <span class="ps-switch">
@@ -13,37 +11,30 @@
           <span class="slide-button"></span>
         </span>
     </div>
-    <div class="col" id="js-insurance-amount">
-
-    </div>
-
+    <strong class="col" id="js-insurance-amount"></strong>
 </div>
 <script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelector('.js-shipping-form').appendChild(document.getElementById('insurance_wrapper'));
-        document.getElementById('insurance_wrapper').style.removeProperty('display');
-
-        $('input[name="insurance"]').on('change', function() {
+    $(document).ready(function() {
+        const $insuranceWrapper = $('#insurance_wrapper');
+        const $insuranceInput = $('input[name="insurance"]');
+        $('.js-shipping-form').append($insuranceWrapper);
+        $insuranceWrapper.show();
+        $insuranceInput.on('change', function() {
             $.ajax({
-                url: "{Context::getContext()->link->getModuleLink('carrier_insurance', 'ajax')}",
+                url: "{Context::getContext()->link->getModuleLink('carrierinsurance', 'ajax')}",
                 data : {
                     ajax: 1,
                     action : 'updateInsurance',
-                    value : $('input[name="insurance"]:checked').val(),
+                    value : parseInt($insuranceInput.filter(':checked').val()),
                     id_cart: $('#cart_summary_cart_id').val()
                 },
                 dataType: 'json'
             }).done(function( data ) {
-                console.log(data);
                 $('#delivery-option-select').trigger('change');
-                if (data.amount_numeric > 0) {
-                    $('#js-insurance-amount').html('(+' + data.amount + ')');
-                } else {
-                    $('#js-insurance-amount').html('');
-                }
+                $('#js-insurance-amount').html('+' + data.amount);
             });
         });
 
-        $('input[name="insurance"]:checked').trigger('change');
+        $insuranceInput.trigger('change');
     });
 </script>

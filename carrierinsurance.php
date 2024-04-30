@@ -232,7 +232,7 @@ class CarrierInsurance extends Module
     /**
      * @return array{amount_tax_excl: float, amount_tax_incl: float}
      */
-    public function getCartAmountsSaved($id_cart): array {
+    private function getCartAmountsSaved($id_cart): array {
         $cache_key = 'CarrierInsurance::getCartAmountsSaved_' . $id_cart;
         if (!Cache::isStored($cache_key)) {
             $amounts = Db::getInstance()->getRow('
@@ -245,12 +245,12 @@ class CarrierInsurance extends Module
         return Cache::retrieve($cache_key);
     }
 
-    public function getCartAmountTaxInclSaved($id_cart): float
+    private function getCartAmountTaxInclSaved($id_cart): float
     {
         return (float)$this->getCartAmountsSaved($id_cart)['amount_tax_incl'];
     }
 
-    public function getCartAmountTaxExclSaved($id_cart): float
+    private function getCartAmountTaxExclSaved($id_cart): float
     {
         return (float)$this->getCartAmountsSaved($id_cart)['amount_tax_excl'];
     }
@@ -270,7 +270,7 @@ class CarrierInsurance extends Module
      * @throws \Exception
      * /**
      */
-    private function calculateCartAmounts(Cart $cart)
+    public function calculateCartAmounts(Cart $cart)
     {
         if (!Validate::isLoadedObject($cart)) {
             return false;
@@ -374,8 +374,8 @@ class CarrierInsurance extends Module
                 (new Currency($order->id_currency))->iso_code
             );
             $this->context->smarty->assign(array(
-                'amount' =>  $amount,
-                'amount_numeric' => $amount_numeric
+                'amount_numeric' => $amount_numeric,
+                'amount' =>  $amount_numeric > 0 ? $amount : $this->l('Free')
             ));
             return $this->display(__FILE__, 'views/templates/hook/admin-order.tpl');
         }
@@ -383,12 +383,15 @@ class CarrierInsurance extends Module
     }
 
     public function hookDisplayBackOfficeHeader($params) {
-       /* $this->context->smarty->assign(array(
-            'have_insurance' => self::cartHaveInsurance(Validate::isLoadedObject($this->context->cart) ? $this->context->cart->id : 0),
-            'amount' => self::getAmountForCart(),
-            'amount_display' => Tools::displayPrice(self::getAmountForCart())
-        ));
-        return $this->display(__FILE__, 'views/templates/hook/admin-order-create.tpl');*/
+        if (
+            Tools::getValue('controller') == 'AdminOrders' &&
+            Tools::getValue('action') == 'addorder'
+        ) {
+            $this->context->smarty->assign(array(
+                'have_insurance' => Validate::isLoadedObject($this->context->cart) &&self::cartHaveInsurance( $this->context->cart->id)
+            ));
+            return $this->display(__FILE__, 'views/templates/hook/admin-order-create.tpl');
+        }
 
         if (
             Tools::getValue('controller') == 'AdminModules' &&
@@ -414,13 +417,18 @@ class CarrierInsurance extends Module
                     $insurance_amount,
                     (new Currency($this->context->cart->id_currency))->iso_code
                 ),
+                'tax_label' => $taxIncluded ? $this->l('Tax incl.') : $this->l('Tax excl.'),
                 'ajax_url' => $this->context->link->getModuleLink(
                     $this->name,
                     'ajax',
                     ['ajax' => 1, 'process' => 'updateInsurance']
                 ),
                 'id_cms' => (int)Configuration::get('CI_ID_CMS'),
-
+                'cms_url' => $this->context->link->getCMSLink(
+                    (int)Configuration::get('CI_ID_CMS'),
+                    null,
+                    $this->context->language->iso_code
+                )
             ));
             return $this->display(__FILE__, 'views/templates/hook/carrier-extra-content.tpl');
         }
@@ -444,7 +452,7 @@ class CarrierInsurance extends Module
                 "type" => "insurance",
                 "label" => $this->l('Insurance'),
                 "amount" => $amount_numeric,
-                "value" => $amount
+                "value" => $amount_numeric > 0 ? $amount : $this->l('Free')
             ];
         }
     }
@@ -470,7 +478,7 @@ class CarrierInsurance extends Module
                     'type' => 'insurance',
                     "label" => $this->l('Insurance'),
                     'amount' => $amount_numeric,
-                    'value' => $amount,
+                    'value' => $amount_numeric > 0 ? $amount : $this->l('Free')
                 ]
             ]);
         }

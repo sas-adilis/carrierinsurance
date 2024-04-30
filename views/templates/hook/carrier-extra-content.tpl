@@ -1,23 +1,28 @@
-<span>
-    <input id="carrier_insurance" name="carrier_insurance" type="checkbox" value="1" {if $have_insurance}checked="checked"{/if} data-url="{$ajax_url}">
-    <span><i class="fa fa-check rtl-no-flip checkbox-checked" aria-hidden="true"></i></span>
-    <label class="js-terms" for="carrier_insurance">
-        {l s='je souhaite bénéficier de la garantie de livraison' mod='carrier_insurance'}
-        {if $amount > 0}
-            {l s='pour un montant de %s HT' sprintf=[$amount] mod='carrier_insurance'}
-        {/if}
-        .
-    </label>
-    </span>
-    {if isset($hb_ci_id_cms) && $hb_ci_id_cms}
-        {l s='Je confirme avoir lu les' mod='carrier_insurance'}
-        <a href="{Context::getContext()->link->getCMSLink($hb_ci_id_cms)}" target="_blank" rel="nofollow">"{l s='conditions d\'utilisation de la garantie optionnelle du client' mod='carrier_insurance'}"</a>
-        {l s='et j\'y adhère sans reserve ' mod='carrier_insurance'}
-        <small>
-            <a href="{Context::getContext()->link->getCMSLink($hb_ci_id_cms)}" target="_blank" rel="nofollow">
-            ({l s='Cliquez ici pour plus d\'information sur la garantie de livraison' mod='carrier_insurance'})
-            </a>
-        </small>
-    {/if}
+<div>
 
+    <div class="float-xs-left">
+      <span class="custom-checkbox">
+        <input id="carrier_insurance" name="carrier_insurance" type="checkbox" value="1" {if $have_insurance}checked="checked"{/if} data-url="{$ajax_url}">
+        <span><i class="material-icons rtl-no-flip checkbox-checked"></i></span>
+      </span>
+    </div>
+    <div class="condition-label">
+        <label class="js-terms" for="carrier_insurance">
+            {if $amount_numeric > 0}
+                {l s='I would like to take advantage of the delivery guarantee for an amount of %amount% %tax_label%.' sprintf=[
+                    '%amount%' => $amount,
+                    '%tax_label%' => $tax_label
+                ] mod='carrierinsurance'}
+            {else}
+                {l s='I would like to take advantage of the free delivery guarantee.' mod='carrierinsurance'}
+            {/if}
+            {if $id_cms > 0}
+                {l s='I confirm that i have read the terms and conditions of the %open_tag%optional customer guarantee%close_tag% and agree to them without reservation (%open_tag%click here for more information on the delivery guarantee%close_tag%).' sprintf=[
+                    '%open_tag%' => '<a href="'|cat:$cms_url|cat:'" target="_blank" rel="nofollow">',
+                    '%close_tag%' => '</a>'
+                ] d='Module.Carrierinsurance'}
+            {/if}
+        </label>
+    </div>
+</div>
 <br/><br/>
