@@ -8,7 +8,7 @@ $(document).ready(function() {
     $tableRanges = $('#table-ranges');
     $tableRangesModel = $tableRanges.find('tr#model');
 
-    const $typeSelect = $('#CI_TYPE');
+    const $typeSelect = $('#CI_CALCULATION_METHOD');
     $typeSelect.on('change', function() {
         if ($(this).val() === 'amount') {
             $tableRanges.find('.input-group-percent').hide();

@@ -12,14 +12,8 @@
             <thead>
                 <tr>
                     <th class="fixed-width-xs"></th>
-                    <th class="fixed-width-lg text-center">
-                        <i class="icon icon-question-circle label-tooltip" data-toggle="tooltip" title="{l s='Order amount (included), excluding shipping costs' mod='carrierinsurance'}"></i>
-                        {l s='From >=' mod='carrierinsurance'}
-                    </th>
-                    <th class="fixed-width-lg text-center">
-                        <i class="icon icon-question-circle label-tooltip" data-toggle="tooltip" title="{l s='Order amount (excluded), excluding shipping costs' mod='carrierinsurance'}"></i>
-                        {l s='< to' mod='carrierinsurance'}
-                    </th>
+                    <th class="fixed-width-lg text-center">{l s='From >=' mod='carrierinsurance'}</th>
+                    <th class="fixed-width-lg text-center">{l s='< to' mod='carrierinsurance'}</th>
                     <th class="fixed-width-xs"></th>
                     <th class="fixed-width-lg">{l s='Insurance amount' mod='carrierinsurance'}</th>
                 </tr>
