@@ -1,7 +1,7 @@
 <?php
 /**
  * 2024 Adilis.
- * Offer insurance on your deliveries
+ * Offer insurance on your deliveries.
  *
  * @author Adilis <contact@adilis.fr>
  * @copyright 2024 SAS Adilis
@@ -31,6 +31,7 @@ class CarrierInsurance extends Module
         $this->version = '1.1.3';
         $this->displayName = $this->l('Carrier insurance');
         $this->description = $this->l('Offer insurance on your deliveries');
+        $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
 
         parent::__construct();
     }

@@ -1,3 +1,12 @@
+{**
+ * 2024 Adilis.
+ * Offer insurance on your deliveries.
+ *
+ * @author Adilis <contact@adilis.fr>
+ * @copyright 2024 SAS Adilis
+ * @license http://www.adilis.fr
+ *}
+
 <div id="insurance_wrapper" class="form-group row" style="display: none;">
     <div class="col-md-6 col-xl-3 text-md-right col-form-label">
         <span class="float-right">{l s='Insurance (Tax incl.)' mod='carrierinsurance'}</span>
@@ -21,7 +30,7 @@
         $insuranceWrapper.show();
         $insuranceInput.on('change', function() {
             $.ajax({
-                url: "{Context::getContext()->link->getModuleLink('carrierinsurance', 'ajax')}",
+                url: "{Context::getContext()->link->getModuleLink('carrierinsurance', 'ajax')|escape:'htmlall':'UTF-8'}",
                 data : {
                     ajax: 1,
                     action : 'updateInsurance',

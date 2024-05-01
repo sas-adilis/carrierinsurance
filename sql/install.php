@@ -1,7 +1,7 @@
 <?php
 /**
  * 2024 Adilis.
- * Offer insurance on your deliveries
+ * Offer insurance on your deliveries.
  *
  * @author Adilis <contact@adilis.fr>
  * @copyright 2024 SAS Adilis

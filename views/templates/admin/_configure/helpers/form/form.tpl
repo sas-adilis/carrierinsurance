@@ -1,6 +1,7 @@
 {**
  * 2024 Adilis.
- * Manage returns and exchanges easily and quickly
+ * Offer insurance on your deliveries.
+ *
  * @author Adilis <contact@adilis.fr>
  * @copyright 2024 SAS Adilis
  * @license http://www.adilis.fr
@@ -27,20 +28,20 @@
                     <td>
                         <div class="input-group">
                             <input disabled type="text" name="ranges[from][]" class="form-control js-from js-float-only" value="" />
-                            <span class="input-group-addon">{$currency->sign}</span>
+                            <span class="input-group-addon">{$currency->sign|escape:'htmlall':'UTF-8'}</span>
                         </div>
                     </td>
                     <td>
                         <div class="input-group">
                             <input disabled type="text" name="ranges[to][]" class="form-control js-to js-float-only" value="" />
-                            <span class="input-group-addon">{$currency->sign}</span>
+                            <span class="input-group-addon">{$currency->sign|escape:'htmlall':'UTF-8'}</span>
                         </div>
                     </td>
                     <td>=</td>
                     <td>
                         <div class="input-group input-group-amount">
                             <input disabled type="text" name="ranges[amount][]" class="form-control js-amount js-float-only" value="" />
-                            <span class="input-group-addon">{$currency->sign} {l s='Tax excl.' mod='carrierinsurance'}</span>
+                            <span class="input-group-addon">{$currency->sign|escape:'htmlall':'UTF-8'} {l s='Tax excl.' mod='carrierinsurance'}</span>
                         </div>
                         <div class="input-group input-group-percent">
                             <input disabled type="text" name="ranges[percent][]" class="form-control js-percent js-float-only" value="" />
@@ -56,24 +57,24 @@
                         </td>
                         <td>
                             <div class="input-group">
-                                <input type="text" name="ranges[from][]" class="form-control js-from js-float-only" value="{$range.from}" />
-                                <span class="input-group-addon">{$currency->sign}</span>
+                                <input type="text" name="ranges[from][]" class="form-control js-from js-float-only" value="{$range.from|floatval}" />
+                                <span class="input-group-addon">{$currency->sign|escape:'htmlall':'UTF-8'}</span>
                             </div>
                         </td>
                         <td>
                             <div class="input-group">
-                                <input type="text" name="ranges[to][]" class="form-control js-to js-float-only" value="{$range.to}" />
-                                <span class="input-group-addon">{$currency->sign}</span>
+                                <input type="text" name="ranges[to][]" class="form-control js-to js-float-only" value="{$range.to|floatval}" />
+                                <span class="input-group-addon">{$currency->sign|escape:'htmlall':'UTF-8'}</span>
                             </div>
                         </td>
                         <td>=</td>
                         <td>
                             <div class="input-group input-group-amount">
-                                <input type="text" name="ranges[amount][]" class="form-control js-amount js-float-only" value="{$range.amount}" />
-                                <span class="input-group-addon">{$currency->sign} {l s='Tax excl.' mod='carrierinsurance'}</span>
+                                <input type="text" name="ranges[amount][]" class="form-control js-amount js-float-only" value="{$range.amount|floatval}" />
+                                <span class="input-group-addon">{$currency->sign|escape:'htmlall':'UTF-8'} {l s='Tax excl.' mod='carrierinsurance'}</span>
                             </div>
                             <div class="input-group input-group-percent">
-                                <input type="text" name="ranges[percent][]" class="form-control js-percent js-float-only" value="{$range.percent}" />
+                                <input type="text" name="ranges[percent][]" class="form-control js-percent js-float-only" value="{$range.percent|floatval}" />
                                 <span class="input-group-addon">%</span>
                             </div>
                         </td>

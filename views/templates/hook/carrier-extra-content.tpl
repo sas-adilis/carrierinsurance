@@ -1,7 +1,16 @@
+{**
+ * 2024 Adilis.
+ * Offer insurance on your deliveries.
+ *
+ * @author Adilis <contact@adilis.fr>
+ * @copyright 2024 SAS Adilis
+ * @license http://www.adilis.fr
+ *}
+
 <div id="carrier_insurance_wrapper">
     <div class="float-xs-left">
       <span class="custom-checkbox">
-        <input id="carrier_insurance" name="carrier_insurance" type="checkbox" value="1" {if $have_insurance}checked="checked"{/if} data-url="{$ajax_url}">
+        <input id="carrier_insurance" name="carrier_insurance" type="checkbox" value="1" {if $have_insurance}checked="checked"{/if} data-url="{$ajax_url|escape:'htmlall':'UTF-8'}">
         <span><i class="material-icons rtl-no-flip checkbox-checked"></i></span>
       </span>
     </div>
