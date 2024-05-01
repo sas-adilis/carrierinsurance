@@ -21,6 +21,8 @@ class CarrierInsurance extends Module
     const CALCULATION_METHOD_PERCENT_ORDER = 'percent_order';
     const CALCULATION_METHOD_PERCENT_SHIPPING = 'percent_shipping';
 
+    private static $hookDisplayPDFInvoiceBeforeTotalCalled = false;
+
     public function __construct()
     {
         $this->name = 'carrierinsurance';
@@ -63,6 +65,10 @@ class CarrierInsurance extends Module
 
     public function getContent(): string
     {
+        if ($this->testHookDisplayPDFInvoiceBeforeTotal() === false) {
+            $this->context->controller->errors[] = $this->l('The hook displayPDFInvoiceBeforeTotal is not installed. Please read the documentation.');
+        }
+
         if (Tools::isSubmit('submit' . $this->name . 'Module')) {
             $amount_key = Tools::getValue('CI_CALCULATION_METHOD') == 'amount' ? 'amount' : 'percent';
             $posted_ranges = $this->getPostedRanges();
@@ -565,6 +571,7 @@ class CarrierInsurance extends Module
      */
     public function hookDisplayPDFInvoiceBeforeTotal($params)
     {
+        self::$hookDisplayPDFInvoiceBeforeTotalCalled = true;
         $order = $params['order'];
         if (self::cartHaveInsurance($order->id_cart)) {
             $amount_numeric = $this->getCartAmountTaxExclSaved($order->id_cart);
@@ -651,5 +658,27 @@ class CarrierInsurance extends Module
                 $params['breakdowns'] = $breakdowns;
             }
         }
+    }
+
+    /**
+     * @throws PrestaShopException
+     * @throws PrestaShopDatabaseException
+     */
+    private function testHookDisplayPDFInvoiceBeforeTotal(): bool
+    {
+        $random_invoice_id = (int) Db::getInstance()->getValue('SELECT id_order_invoice FROM ' . _DB_PREFIX_ . 'order_invoice ORDER BY RAND()');
+        if (!$random_invoice_id) {
+            return true;
+        }
+
+        $order_invoice = new OrderInvoice((int) $random_invoice_id);
+        if (!Validate::isLoadedObject($order_invoice)) {
+            return true;
+        }
+
+        $pdf = new PDF($order_invoice, PDFCore::TEMPLATE_INVOICE, Context::getContext()->smarty);
+        $pdf->render('S');
+
+        return self::$hookDisplayPDFInvoiceBeforeTotalCalled;
     }
 }

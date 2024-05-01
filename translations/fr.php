@@ -4,6 +4,7 @@ global $_MODULE;
 $_MODULE = [];
 $_MODULE['<{carrierinsurance}prestashop>carrierinsurance_9ecbd5675f6c0415366620d184000201'] = 'Assurance transporteur';
 $_MODULE['<{carrierinsurance}prestashop>carrierinsurance_b1909f8b909b7b43a65b230ffefb4e35'] = 'Proposez une assurance sur vos livraisons';
+$_MODULE['<{carrierinsurance}prestashop>carrierinsurance_9533b7852e0021c77c8e4683256b33c3'] = 'Le hook displayPDFInvoiceBeforeTotal n\'est pas installé. Veuillez lire la documentation.';
 $_MODULE['<{carrierinsurance}prestashop>carrierinsurance_46dcb80126b0b567a4b19005e0417f42'] = 'Tranche non valide #%d : la valeur \"de\" doit être inférieure à la valeur \"à\"';
 $_MODULE['<{carrierinsurance}prestashop>carrierinsurance_a18c5b0eabebceeb2057e481280b0dba'] = 'Tranche non valide #%d : la valeur \"de\" doit être supérieure à la valeur précédente \"à\"';
 $_MODULE['<{carrierinsurance}prestashop>carrierinsurance_992f2d3008876db5fa4a1a3cd95db523'] = 'Tranche invalide #%d : la valeur \"%s\" doit être remplie';
