@@ -174,7 +174,7 @@ class CarrierInsurance extends Module
                             'type' => 'select',
                             'name' => 'CI_ID_TAX_RULES_GROUP',
                             'id' => 'CI_ID_TAX_RULES_GROUP',
-                            'label' => $this->l('Taxes'),
+                            'label' => $this->l('Tax rule'),
                             'options' => [
                                 'default' => ['value' => null, 'label' => $this->l('No tax')],
                                 'query' => TaxRulesGroup::getTaxRulesGroups(),
