@@ -438,7 +438,7 @@ class CarrierInsurance extends Module
                 'amount' => $amount_numeric > 0 ? $amount : $this->l('Free'),
             ]);
 
-            return $this->display(__FILE__, 'views/templates/hook/admin-order.tpl');
+            return $this->display(__FILE__, 'views/templates/hook/admin-order-view.tpl');
         }
 
         return '';
@@ -450,19 +450,26 @@ class CarrierInsurance extends Module
             Tools::getValue('controller') == 'AdminOrders'
             && Tools::getValue('action') == 'addorder'
         ) {
+            $this->context->controller->addJS($this->_path . 'views/js/admin-order-add.js');
             $this->context->smarty->assign([
                 'have_insurance' => Validate::isLoadedObject($this->context->cart) && self::cartHaveInsurance($this->context->cart->id),
             ]);
+            return $this->display(__FILE__, 'views/templates/hook/admin-order-add.tpl');
+        }
 
-            return $this->display(__FILE__, 'views/templates/hook/admin-order-create.tpl');
+        if (
+            Tools::getValue('controller') == 'AdminOrders'
+            && Tools::getValue('action') == 'vieworder'
+        ) {
+            $this->context->controller->addJS($this->_path . 'views/js/admin-order-view.js');
         }
 
         if (
             Tools::getValue('controller') == 'AdminModules'
             && Tools::getValue('configure') == $this->name
         ) {
-            $this->context->controller->addJS($this->_path . 'views/js/back.js');
-            $this->context->controller->addCSS($this->_path . 'views/css/back.css');
+            $this->context->controller->addJS($this->_path . 'views/js/admin-configure.js');
+            $this->context->controller->addCSS($this->_path . 'views/css/admin-configure.css');
         }
     }
 
@@ -552,6 +559,9 @@ class CarrierInsurance extends Module
         }
     }
 
+    /**
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     */
     public function hookDisplayPDFInvoiceBeforeTotal($params)
     {
         $order = $params['order'];

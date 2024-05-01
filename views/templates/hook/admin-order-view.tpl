@@ -15,9 +15,3 @@
         <strong id="orderInsuranceTotal">{$amount|escape:'htmlall':'UTF-8'}</strong>
     </div>
 </div>
-
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#order-insurance-total-container').insertAfter('#order-shipping-total-container');
-    });
-</script>
