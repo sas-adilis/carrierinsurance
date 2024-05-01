@@ -549,7 +549,7 @@ class CarrierInsurance extends Module
                 $amount_numeric,
                 (new Currency($order->id_currency))->iso_code
             );
-            -$params['presentedOrder']->getSubtotals()->appendArray([
+            $params['presentedOrder']->getSubtotals()->appendArray([
                 'insurance' => [
                     'type' => 'insurance',
                     'label' => $this->l('Insurance'),
