@@ -24,7 +24,11 @@ $(document).ready(function() {
             dataType: 'json'
         }).done(function( data ) {
             $('#delivery-option-select').trigger('change');
-            $('#js-insurance-amount').html('+' + data.amount);
+            if (data.amount_numeric > 0) {
+                $('#js-insurance-amount').html('+' + data.amount);
+            } else {
+                $('#js-insurance-amount').html('');
+            }
         });
     });
 

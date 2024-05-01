@@ -26,15 +26,15 @@ class CarrierInsuranceAjaxModuleFrontController extends ModuleFrontController
             $id_cart = (int) Tools::getValue('id_cart');
             $amount_numeric = $amount = 0;
             if ($id_cart && ($cart = new Cart($id_cart)) && Validate::isLoadedObject($cart)) {
-                $amounts = $this->module->calculateCartAmounts($cart);
-                if ($amounts === false) {
-                    $amounts = [
-                        'amount_tax_excl' => 0,
-                        'amount_tax_incl' => 0,
-                    ];
-                }
-                $amount_numeric = $amounts['amount_tax_incl'];
                 if ($have_selected_insurance) {
+                    $amounts = $this->module->calculateCartAmounts($cart);
+                    if ($amounts === false) {
+                        $amounts = [
+                            'amount_tax_excl' => 0,
+                            'amount_tax_incl' => 0,
+                        ];
+                    }
+                    $amount_numeric = $amounts['amount_tax_incl'];
                     Db::getInstance()->insert('cart_insurance', [
                         'id_cart' => (int) $id_cart,
                         'amount_tax_excl' => (float) $amounts['amount_tax_excl'],
