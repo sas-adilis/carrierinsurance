@@ -17,18 +17,18 @@
     <div class="condition-label">
         <label class="js-terms" for="carrier_insurance">
             {if $amount_numeric > 0}
-                {l s='I would like to take advantage of the delivery guarantee for an amount of %amount% %tax_label%.' sprintf=[
+                {l s='I would like to take advantage of the delivery insurance for an amount of %amount% %tax_label%.' sprintf=[
                     '%amount%' => $amount,
                     '%tax_label%' => $tax_label
-                ] mod='carrierinsurance'}
+                ] d='Modules.Carrierinsurance'}
             {else}
-                {l s='I would like to take advantage of the free delivery guarantee.' mod='carrierinsurance'}
+                {l s='I would like to take advantage of the free delivery insurance.' mod='carrierinsurance'}
             {/if}
             {if $id_cms > 0}
-                {l s='I confirm that i have read the terms and conditions of the %open_tag%optional customer guarantee%close_tag% and agree to them without reservation (%open_tag%click here for more information on the delivery guarantee%close_tag%).' sprintf=[
+                {l s='I confirm that i have read the terms and conditions of the %open_tag%optional customer insurance%close_tag% and agree to them without reservation (%open_tag%click here for more information on the delivery insurance%close_tag%).' sprintf=[
                     '%open_tag%' => '<a href="'|cat:$cms_url|cat:'" target="_blank" rel="nofollow">',
                     '%close_tag%' => '</a>'
-                ] d='Module.Carrierinsurance'}
+                ] d='Modules.Carrierinsurance'}
             {/if}
         </label>
     </div>

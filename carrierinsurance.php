@@ -36,6 +36,10 @@ class CarrierInsurance extends Module
         $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
 
         parent::__construct();
+
+        /* fix translations with sprintf and html */
+        // $this->l('I would like to take advantage of the delivery insurance for an amount of %amount% %tax_label%.');
+        // $this->l('I confirm that i have read the terms and conditions of the %open_tag%optional customer insurance%close_tag% and agree to them without reservation (%open_tag%click here for more information on the delivery insurance%close_tag%).');
     }
 
     public function install(): bool
@@ -63,12 +67,12 @@ class CarrierInsurance extends Module
             && $this->registerHook('actionPDFInvoiceTaxBreakdown');
     }
 
+    /**
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function getContent(): string
     {
-        if ($this->testHookDisplayPDFInvoiceBeforeTotal() === false) {
-            $this->context->controller->errors[] = $this->l('The hook displayPDFInvoiceBeforeTotal is not installed. Please read the documentation.');
-        }
-
         if (Tools::isSubmit('submit' . $this->name . 'Module')) {
             $amount_key = Tools::getValue('CI_CALCULATION_METHOD') == 'amount' ? 'amount' : 'percent';
             $posted_ranges = $this->getPostedRanges();
@@ -115,6 +119,10 @@ class CarrierInsurance extends Module
                 $redirect_after .= '&conf=4&configure=' . $this->name . '&module_name=' . $this->name;
                 Tools::redirectAdmin($redirect_after);
             }
+        }
+
+        if ($this->testHookDisplayPDFInvoiceBeforeTotal() === false) {
+            $this->context->controller->errors[] = $this->l('The hook displayPDFInvoiceBeforeTotal is not installed. Please read the documentation.');
         }
 
         return $this->renderForm();
