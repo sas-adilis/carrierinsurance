@@ -105,7 +105,7 @@ class CarrierInsurance extends Module
                 Configuration::updateValue('CI_ID_TAX_RULES_GROUP', (int) Tools::getValue('CI_ID_TAX_RULES_GROUP'));
                 Configuration::updateValue('CI_ID_CMS', (int) Tools::getValue('CI_ID_CMS'));
 
-                $redirect_after = $this->context->link->getAdminLink('AdminModules', true);
+                $redirect_after = $this->context->link->getAdminLink('AdminModules');
                 $redirect_after .= '&conf=4&configure=' . $this->name . '&module_name=' . $this->name;
                 Tools::redirectAdmin($redirect_after);
             }
@@ -454,6 +454,7 @@ class CarrierInsurance extends Module
             $this->context->smarty->assign([
                 'have_insurance' => Validate::isLoadedObject($this->context->cart) && self::cartHaveInsurance($this->context->cart->id),
             ]);
+
             return $this->display(__FILE__, 'views/templates/hook/admin-order-add.tpl');
         }
 
@@ -560,7 +561,7 @@ class CarrierInsurance extends Module
     }
 
     /**
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookDisplayPDFInvoiceBeforeTotal($params)
     {
@@ -578,12 +579,14 @@ class CarrierInsurance extends Module
 
             return $this->display(__FILE__, 'views/templates/hook/pdf-total-tab-invoice.tpl');
         }
+
+        return '';
     }
 
     private function isOrderViewTaxIncluded(Order $order): bool
     {
         $customer = new Customer($order->id_customer);
-        $taxCalculationMethod = Group::getPriceDisplayMethod((int) $customer->id_default_group);
+        $taxCalculationMethod = Group::getPriceDisplayMethod($customer->id_default_group);
 
         return $taxCalculationMethod == PS_TAX_INC;
     }
@@ -591,7 +594,7 @@ class CarrierInsurance extends Module
     private function isCartViewTaxIncluded(Cart $cart): bool
     {
         $customer = new Customer($cart->id_customer);
-        $taxCalculationMethod = Group::getPriceDisplayMethod((int) $customer->id_default_group);
+        $taxCalculationMethod = Group::getPriceDisplayMethod($customer->id_default_group);
 
         return $taxCalculationMethod == PS_TAX_INC;
     }

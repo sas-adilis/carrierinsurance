@@ -16,6 +16,11 @@ use PrestaShop\PrestaShop\Core\Cart\Calculator;
 
 class CartCalculatorWithInsurance extends Calculator
 {
+    /**
+     * @throws ReflectionException
+     *
+     * @noinspection PhpMissingParentConstructorInspection
+     */
     public function __construct($calculator)
     {
         $reflectedSourceObject = new ReflectionClass($calculator);
